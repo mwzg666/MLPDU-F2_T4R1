@@ -1,0 +1,1 @@
+"Hardware\CDC\cdc_usb.c" XSMALL INTR2 BROWSE INCDIR(.\Hardware\Usart;.\USER;.\Hardware\LED;.\Hardware\TIM;.\Hardware\Eeprom;.\Hardware\CDC) DEBUG PRINT(.\obj\cdc_usb.lst) OBJECT(.\obj\cdc_usb.obj)

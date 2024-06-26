@@ -1,0 +1,55 @@
+C251 COMPILER V5.60.0,  led                                                                25/04/23  11:33:34  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE led
+OBJECT MODULE PLACED IN .\obj\led.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Hardware\LED\led.c XSMALL INTR2 BROWSE INCDIR(.\Hardware\Usart;.\USER;
+                    -.\Hardware\LED;.\Hardware\TIM;.\Hardware\Eeprom) DEBUG PRINT(.\obj\led.lst) OBJECT(.\obj\led.obj) 
+
+stmt  level    source
+
+    1          #include "main.h"
+    2          #include "led.h"
+    3          
+    4          // °åÔØÖ¸Ê¾µÆ
+    5          void RunLed(u16 dt)
+    6          {   
+    7   1          static u16 tm = 0;
+    8   1          u16 to = 3000;
+    9   1          tm += dt;
+   10   1      
+   11   1          if (tm > to)
+   12   1          {
+   13   2              tm = 0;
+   14   2              RUN_LED(0);
+   15   2          }
+   16   1          else if (tm > (to-100))
+   17   1          {
+   18   2              RUN_LED(1);
+   19   2          }
+   20   1      }
+   21          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =        34     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =         2     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =         6     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

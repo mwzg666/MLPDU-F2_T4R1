@@ -1,0 +1,605 @@
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE main
+OBJECT MODULE PLACED IN .\obj\main.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE USER\main.c XSMALL INTR2 BROWSE INCDIR(.\Hardware\Usart;.\USER;.\Hardw
+                    -are\TIM;.\Hardware\I2C;.\Hardware\mcp4725;.\Ads1110;.\MwPro) DEBUG PRINT(.\obj\main.lst) OBJECT(.\obj\main.obj) 
+
+stmt  level    source
+
+    1          #include "main.h"
+    2          #include "time.h"
+    3          #include "uart.h"
+    4          #include "i2c.h"
+    5          #include "Ads1110.h"
+    6          #include "Cmd.h"
+    7          #include "mcp4725.h"
+    8          #include "MwPro.h"
+    9          
+   10          const BYTE VERSION[8] = "V1.0.0";
+   11          BYTE xdata StrTmp[64] = {0};
+   12          
+   13          alt_u32 gIdleTime;
+   14          alt_u32 gTask1sTime = 0;
+   15          #if 0
+               alt_u8 g_Output[OUT_IO_COUNT]      = {1,0,0,0,0,0};   // ÉÏµçÂÌµÆÁÁ // 
+               alt_u8 g_OutStatus[OUT_IO_COUNT]   = {0,0,0,0,0,0};
+               #else
+   19          alt_u8 g_Output[OUT_IO_COUNT]      = {1,0,0,0,0,0};   // ÉÏµçÂÌµÆÁÁ // 
+   20          alt_u8 g_OutStatus[OUT_IO_COUNT]   = {0,0,0,0,0,0};
+   21          
+   22          alt_u8 g_OutChannelLight[OUT_Channel_COUNT]      = {0,0,0,0};   // ¸÷Ì½Í·±¨¾¯µÆ // 
+   23          alt_u8 g_OutChannelStatus[OUT_Channel_COUNT]   = {0,0,0,0};
+   24          
+   25          #endif
+   26          
+   27          alt_u16 gRunTime = 0;
+   28          
+   29          alt_u8 g_Key_Confrom  = 0; 
+   30          alt_u8 g_Key_Power  = 0; 
+   31          alt_u8 g_Key_Input  = 0; 
+   32          BYTE Input_Status = 0;
+   33          
+   34          
+   35          void DebugMsg(char *msg)
+   36          {
+   37   1          BYTE len = (BYTE)strlen(msg);
+   38   1          //Uart1Send((BYTE *)msg,len);
+   39   1      }
+   40          
+   41          void DebugInt(int msg)
+   42          {
+   43   1          memset(StrTmp,0,64);
+   44   1          sprintf(StrTmp,"%x\r\n",msg);
+   45   1          DebugMsg(StrTmp);
+   46   1      }
+   47          
+   48          void DumpCmd(BYTE *dat, BYTE len)
+   49          {
+   50   1          BYTE i;
+   51   1          memset(StrTmp,0,64);
+   52   1          for (i=0;i<len;i++)
+   53   1          {
+   54   2              if (strlen(StrTmp) >= 60)
+   55   2              {
+   56   3                  break;
+   57   3              }
+   58   2              sprintf(&StrTmp[i*3], "%02X ", dat[i]);
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 2   
+
+   59   2          }
+   60   1          sprintf(&StrTmp[i*3], "\r\n");
+   61   1          DebugMsg(StrTmp);
+   62   1      }
+   63          
+   64          
+   65          void Error()
+   66          {
+   67   1          while(1)
+   68   1          {
+   69   2              RUN_LED(1);
+   70   2              delay_ms(50);
+   71   2              RUN_LED(0);
+   72   2              delay_ms(50);
+   73   2          }
+   74   1          
+   75   1      }
+   76          
+   77          // °åÔØÖ¸Ê¾µÆ
+   78          void RunLed(u16 dt)
+   79          {   
+   80   1          static u16 tm = 0;
+   81   1          u16 to = 3000;
+   82   1          tm += dt;
+   83   1      
+   84   1          if (tm > to)
+   85   1          {
+   86   2              tm = 0;
+   87   2              RUN_LED(0);
+   88   2          }
+   89   1          else if (tm > (to-100))
+   90   1          {
+   91   2              RUN_LED(1);
+   92   2          }
+   93   1      }
+   94          
+   95          void Idle(alt_u32 time)
+   96          {
+   97   1          gIdleTime = 0;
+   98   1          
+   99   1          while(gIdleTime < time)
+  100   1          {
+  101   2              TimerTask();
+  102   2              HndInput();
+  103   2          }
+  104   1      }
+  105          
+  106          void SysInit()
+  107          {
+  108   1          HIRCCR = 0x80;           // Æô¶¯ÄÚ²¿¸ßËÙIRC
+  109   1          while(!(HIRCCR & 1));
+  110   1          CLKSEL = 0;              
+  111   1      }
+  112          
+  113          void IoInit()
+  114          {
+  115   1          EAXFR = 1;
+  116   1          WTST = 0;                                           //ÉèÖÃ³ÌÐòÖ¸ÁîÑÓÊ±²ÎÊý£¬¸³ÖµÎª0¿É½«CPUÖ´ÐÐÖ¸ÁîµÄË
+             -Ù¶ÈÉèÖÃÎª×î¿ì
+  117   1      
+  118   1          P0M1 = 0x00;   P0M0 = 0xDF;                         // ÍÆÍìÊä³ö
+  119   1          P1M1 = 0x08;   P1M0 = 0x00;                         //ÉèÖÃÎª×¼Ë«Ïò¿Ú//(1<<3)
+  120   1          P2M1 = 0x06;   P2M0 = 0x79;                        // P2.2 ÍÆÍìÊä³ö
+  121   1          P3M1 = 0x00;   P3M0 |= (1<<5);                      //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+  122   1          P4M1 = 0x02;   P4M0 = 0x1C;                        //ÉèÖÃÎª×¼Ë«Ïò¿Ú  
+  123   1          P5M1 = 0x05;   P5M0 |= (1<<1);                      //ÉèÖÃÎª×¼Ë«Ïò¿Ú
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 3   
+
+  124   1      }
+  125          
+  126          
+  127          void MainTask()
+  128          {
+  129   1          // µÈ´ýPCÃüÁî
+  130   1          if (g_UartData[0].Timer > UART_DATA_TIMEOUT)
+  131   1          {
+  132   2              //DebugMsg("Recv pc frame Len: %d \r\n", g_UartData[0].RecvLength);
+  133   2              DebugMsg("PC>:\n");
+  134   2              PrintData((alt_u8 *)g_UartData[0].RecvBuff, (alt_u8)(g_UartData[0].RecvLength));
+  135   2              HndPcFrame();
+  136   2          }
+  137   1      }
+  138          
+  139          void TestRs485()
+  140          {
+  141   1          if (g_UartData[1].Timer > UART_DATA_TIMEOUT)
+  142   1          {
+  143   2              //DebugMsg("Recv pc frame Len: %d \r\n", g_UartData[0].RecvLength);
+  144   2              DebugMsg("PC>:");
+  145   2              PrintData(g_UartData[1].RecvBuff, (alt_u8)(g_UartData[1].RecvLength));
+  146   2              Clear_Uart2_Buf();
+  147   2              //HndPcFrame();
+  148   2          }
+  149   1      }
+  150          
+  151          
+  152          void OutCtl(alt_u8 id, alt_u8 st)
+  153          {
+  154   1          if (g_OutStatus[id] == st)
+  155   1          {
+  156   2              return;
+  157   2          }
+  158   1      
+  159   1          g_OutStatus[id] = st;
+  160   1          
+  161   1          switch(id)
+  162   1          {
+  163   2              case LIGHT_YELLOW: 
+  164   2              {
+  165   3                  (st)? YEL_LIGHT(1):YEL_LIGHT(0);   
+  166   3                  break;
+  167   3              }
+  168   2              
+  169   2              case LIGHT_RED:    
+  170   2              {
+  171   3                  (st)? RED_LIGHT(1):RED_LIGHT(0);    
+  172   3                  break;
+  173   3              }
+  174   2              
+  175   2              case LED_RED:      (st)? RED_LED(1):RED_LED(0);        break;
+  176   2              case LED_GREEN:    (st)? GRE_LED(1):GRE_LED(0);        break;
+  177   2              
+  178   2              case LED_YELLOW:    // ¹ÊÕÏ
+  179   2              {
+  180   3                  (st)? YEL_LED(1):YEL_LED(0); 
+  181   3                  //(st)? LEDF(1):LEDF(0); 
+  182   3                  //RELAY_2(st);
+  183   3                  break;
+  184   3              }
+  185   2              
+  186   2              case ALARM_SOUND:  (st)? ALARM(1):ALARM(0);       break;
+  187   2          }
+  188   1      
+  189   1          
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 4   
+
+  190   1      }
+  191          
+  192          void OutChannelLightCtl(alt_u8 id, alt_u8 st)
+  193          {
+  194   1           if (g_OutChannelStatus[id] == st)
+  195   1          {
+  196   2              return;
+  197   2          }
+  198   1      
+  199   1          g_OutChannelStatus[id] = st;
+  200   1          
+  201   1          switch(id)
+  202   1          {
+  203   2              case LIGHT_OUT1: 
+  204   2              {
+  205   3                  (st)? ALMOUT_1(1):ALMOUT_1(0);   
+  206   3                  break;
+  207   3              }
+  208   2              
+  209   2              case LIGHT_OUT2: 
+  210   2              {
+  211   3                  (st)? ALMOUT_2(1):ALMOUT_2(0);   
+  212   3                  break;
+  213   3              }
+  214   2              case LIGHT_OUT3: 
+  215   2              {
+  216   3                  (st)? ALMOUT_3(1):ALMOUT_3(0);   
+  217   3                  break;
+  218   3              }
+  219   2              
+  220   2              case LIGHT_OUT4: 
+  221   2              {
+  222   3                  (st)? ALMOUT_4(1):ALMOUT_4(0);   
+  223   3                  break;
+  224   3              }
+  225   2          }
+  226   1      }
+  227          
+  228          
+  229          void OutFlash(alt_u8 id)
+  230          {
+  231   1          static alt_u16 OutTimer[OUT_IO_COUNT] = {0,0,0,0,0,0};
+  232   1          //static alt_u16 OutChannelTimer[OUT_Channel_COUNT] = {0,0,0,0};
+  233   1          if (OutTimer[id] ++ > LED_FLASH_TIME/20)
+  234   1          {
+  235   2              OutTimer[id] = 0;
+  236   2              if (g_OutStatus[id] == 1)
+  237   2              {
+  238   3                  OutCtl(id, 0);
+  239   3              }
+  240   2              else
+  241   2              {
+  242   3                  OutCtl(id, 1);
+  243   3              }
+  244   2          }
+  245   1          #if 0
+                   if (OutChannelTimer[id] ++ > LED_FLASH_TIME/20)
+                   {
+                       OutChannelTimer[id] = 0;
+                       if (g_OutChannelStatus[id] == 1)
+                       {
+                           OutChannelLightCtl(id, 0);
+                       }
+                       else
+                       {
+                           OutChannelLightCtl(id, 1);
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 5   
+
+                       }
+                   }
+                   #endif
+  259   1      }
+  260          
+  261          
+  262          void IoCtlTask()
+  263          {
+  264   1          alt_u8 i;
+  265   1          for (i=0;i<OUT_IO_COUNT;i++)
+  266   1          {
+  267   2              if (g_Output[i] == 2)
+  268   2              {
+  269   3                  OutFlash(i);
+  270   3              }
+  271   2              else
+  272   2              {
+  273   3                  OutCtl(i, g_Output[i]);
+  274   3              }
+  275   2          }
+  276   1          #if 0
+                   for (i=0;i<OUT_Channel_COUNT;i++)
+                   {
+                       if (g_OutChannelLight[i] == 2)
+                       {
+                           OutFlash(i);
+                       }
+                       else
+                       {
+                           OutChannelLightCtl(i, g_OutChannelLight[i]);
+                       }
+                   }
+                   #endif
+  289   1      }
+  290          
+  291          void PowerOff()
+  292          {
+  293   1          GRE_LED(0);
+  294   1          YEL_LED(0);
+  295   1          RED_LED(0);
+  296   1          RED_LIGHT(0);
+  297   1          YEL_LIGHT(0);
+  298   1          ALARM(0);
+  299   1      
+  300   1          IPC_PWR_ON(0);
+  301   1          PW_MAIN(0);    //¹Ø±Õ¿ØÖÆ°åµçÔ´
+  302   1      
+  303   1          while(1)
+  304   1          {
+  305   2              ;
+  306   2          }
+  307   1      }
+  308          
+  309          
+  310          void WaitCommIdle()
+  311          {
+  312   1          while (g_CommIdleTime < 200)
+  313   1          {
+  314   2              Idle(10);
+  315   2          }
+  316   1      }
+  317          
+  318          void LedInit()
+  319          {
+  320   1          // ³õÊ¼×´Ì¬¶¼Îª0
+  321   1      
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 6   
+
+  322   1          // Ö¸Ê¾µÆ
+  323   1          GRE_LED(0);
+  324   1          YEL_LED(0);
+  325   1          RED_LED(0);
+  326   1          
+  327   1          YEL_LIGHT(0);   // »ÆµÆ
+  328   1          RED_LIGHT(0);   // ºìµÆ
+  329   1          
+  330   1          //LEDF(0);   
+  331   1          //LEDM(0);      
+  332   1          ALARM(0);       
+  333   1      
+  334   1          ALMOUT_1(0);
+  335   1          ALMOUT_2(0);
+  336   1          ALMOUT_3(0);
+  337   1          ALMOUT_4(0);
+  338   1          
+  339   1      }
+  340          
+  341          
+  342          
+  343          void HndInput()
+  344          {
+  345   1          static alt_u8 PwrHis = POWER_OFF;   
+  346   1          static BYTE  StHis = 0x01;
+  347   1          
+  348   1          BYTE s;
+  349   1      
+  350   1          // ±¨¾¯È·ÈÏ
+  351   1          alt_u8 key = GetKey();
+  352   1          if (key == KEY_ALM_CFM)
+  353   1          {
+  354   2              DebugMsg("KEY_ALM_CFM \r\n");
+  355   2              //WaitCommIdle();
+  356   2              //SendPcCmd(0, CMD_CERTAINKEY, NULL, 0);
+  357   2              g_Key_Confrom = 1;
+  358   2          }
+  359   1      
+  360   1      
+  361   1          Input_Status = GetStatus();
+  362   1          if (Input_Status != 0xFF)
+  363   1          {
+  364   2              s = (Input_Status ^ StHis);
+  365   2              if (s && 1)   // ¿ª¹Ø»ú
+  366   2              {
+  367   3                  if (Input_Status && 1)
+  368   3                  {
+  369   4                      PwrHis = POWER_OFF;
+  370   4                      //WaitCommIdle();
+  371   4                      //SendPcCmd(0, CMD_POWER, &PwrHis, 1);
+  372   4                      g_Key_Power = 1;
+  373   4                  }
+  374   3                  else
+  375   3                  {
+  376   4                      IPC_PWR_ON(1);
+  377   4                      PwrHis = POWER_ON;
+  378   4                      gRunTime = 0;
+  379   4                  }
+  380   3              }
+  381   2      
+  382   2      //        if (s && 4) // ÊäÈë1
+  383   2      //        {
+  384   2      //            //WaitCommIdle();
+  385   2      //            //SendPcCmd(0, CMD_INPUT, &st, 1);
+  386   2      //            g_Key_Input = 1;
+  387   2      //        }
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 7   
+
+  388   2      //
+  389   2      //        if (s && 2) // ÊäÈë2
+  390   2      //        {
+  391   2      //            //WaitCommIdle();
+  392   2      //            //SendPcCmd(0, CMD_INPUT, &st, 1);
+  393   2      //            g_Key_Input = 1;
+  394   2      //        }
+  395   2                  
+  396   2              StHis = Input_Status;
+  397   2          }
+  398   1      
+  399   1      
+  400   1           //ÑÓÊ±¹Ø»ú
+  401   1          if (PwrHis == POWER_OFF)
+  402   1          {
+  403   2              if ((PC_STAUTUS() == 0) && (gRunTime >= 5000))
+  404   2              {
+  405   3                  gRunTime = 0;
+  406   3                  //DebugMsg("Power off \r\n");
+  407   3                  PowerOff();
+  408   3              }
+  409   2          }
+  410   1      }
+  411          
+  412          alt_u8 GetKey()
+  413          {
+  414   1          static alt_u8 key_pressed = 0;
+  415   1          
+  416   1          // ²»ÄÜµ÷ÓÃIdle
+  417   1          if (CONFIRM_BUTTON() == 0)
+  418   1          {
+  419   2              if (key_pressed == 1)
+  420   2              {
+  421   3                  return 0;
+  422   3              }
+  423   2              
+  424   2              delay_ms(20);
+  425   2              if (CONFIRM_BUTTON() == 0)
+  426   2              {
+  427   3                  key_pressed = 1;
+  428   3                  return KEY_ALM_CFM;
+  429   3              }
+  430   2          }
+  431   1          else
+  432   1          {
+  433   2              key_pressed = 0;
+  434   2          }
+  435   1          
+  436   1          return 0;
+  437   1      }
+  438          
+  439          
+  440          BYTE GetStatus()
+  441          {
+  442   1          //static BYTE his = 0x07;
+  443   1          static BYTE his = 0x01;
+  444   1          BYTE st = POWER_LOCK(),st2 = 0;
+  445   1          //st |= INPUT1_M();
+  446   1          //st |= INPUT2_M();
+  447   1      
+  448   1          if (st != his)
+  449   1          {
+  450   2              delay_ms(50);
+  451   2              //st2 = POWER_LOCK();
+  452   2              //st2 |= INPUT1_M();
+  453   2              //st2 |= INPUT2_M(); 
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 8   
+
+  454   2              if ( st == POWER_LOCK() )
+  455   2              {
+  456   3                  his = st;
+  457   3                  return st;
+  458   3              }
+  459   2          }
+  460   1      
+  461   1          return 0xFF;
+  462   1      }
+  463          
+  464          void PrintData(alt_u8 *pata, alt_u8 len)
+  465          {
+  466   1          alt_u8 i=0;
+  467   1          for (i=0; i<len; i++)
+  468   1          {
+  469   2              printf("%02X ", pata[i]);
+  470   2          }
+  471   1          printf("\r\n");
+  472   1      }
+  473          
+  474          
+  475          void Task_1s()
+  476          {
+  477   1          //Rs485Send("123456", 6);
+  478   1          //ReadBatVol();
+  479   1          //Read4_20ma();
+  480   1      }
+  481          
+  482          void ReportInput()
+  483          {
+  484   1          BYTE PwOff = POWER_OFF;
+  485   1          
+  486   1          if (g_CommIdleTime > 300)
+  487   1          {
+  488   2              if (g_Key_Confrom)
+  489   2              {
+  490   3                  g_Key_Confrom = 0;
+  491   3                  SendPcCmd(0, CMD_CERTAINKEY, NULL, 0);
+  492   3                  return;
+  493   3              }
+  494   2      
+  495   2              if (g_Key_Power)
+  496   2              {
+  497   3                  g_Key_Power = 0;
+  498   3                  SendPcCmd(0, CMD_POWER, &PwOff, 1);
+  499   3                  return;
+  500   3              }
+  501   2      
+  502   2              if (g_Key_Input)
+  503   2              {
+  504   3                  g_Key_Input = 0;
+  505   3                  SendPcCmd(0, CMD_INPUT, &Input_Status, 1);
+  506   3              }
+  507   2          }
+  508   1      }
+  509          
+  510          
+  511          void main(void)
+  512          {
+  513   1          SysInit();
+  514   1          IoInit();
+  515   1          PW_MAIN(1);                 // Ö÷µçÔ´
+  516   1          LedInit();
+  517   1          RUN_LED(1);
+  518   1         
+  519   1          delay_ms(200);
+C251 COMPILER V5.60.0,  main                                                               26/06/24  16:41:42  PAGE 9   
+
+  520   1          
+  521   1          Timer0_Init();
+  522   1          delay_ms(200);
+  523   1          
+  524   1          Uart1_Init();
+  525   1          delay_ms(200);
+  526   1          
+  527   1          Uart2_Init();    
+  528   1          delay_ms(200);
+  529   1      
+  530   1          // ´ýCPUÎÈ¶¨ÁËÔÙ¶Á²ÎÊý
+  531   1          delay_ms(500);
+  532   1      
+  533   1          memset((BYTE *)&g_UartData,0,sizeof(UART_DATA)*2); 
+  534   1          delay_ms(200);
+  535   1      
+  536   1          RUN_LED(0);
+  537   1          EA = 1;  //´ò¿ª×ÜÖÐ¶Ï
+  538   1          
+  539   1          WDT_CONTR |= (1<<5) |  7;   // Æô¶¯¿ªÃÅ¹·£¬Ô¼8Ãë
+  540   1          delay_ms(200);
+  541   1          Out4_20ma(1,0);
+  542   1          Out4_20ma(2,0);
+  543   1      
+  544   1          while(1)
+  545   1          {
+  546   2              TimerTask();
+  547   2              HndInput();
+  548   2              ReportInput();
+  549   2              Uart1Hnd();
+  550   2            
+  551   2          }
+  552   1      }
+  553          
+  554          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =      1338     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =        64     ------
+  xdata-const size     =    ------     ------
+  edata size           =        52          5
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =       229     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

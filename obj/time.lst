@@ -1,0 +1,163 @@
+C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE time
+OBJECT MODULE PLACED IN .\obj\time.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Hardware\TIM\time.c XSMALL INTR2 BROWSE INCDIR(.\Hardware\Usart;.\USER
+                    -;.\Hardware\TIM;.\Hardware\I2C;.\Hardware\mcp4725;.\Ads1110;.\MwPro) DEBUG PRINT(.\obj\time.lst) OBJECT(.\obj\time.obj) 
+
+stmt  level    source
+
+    1          #include "time.h"
+    2          #include "cmd.h"
+    3          #include "uart.h"
+    4          
+    5          u16  Timer0Cnt = 0;
+    6          u16  Timer1Cnt = 0;
+    7          u16  Time1s = 0;
+    8          
+    9          void Timer0_Init(void)        //10毫秒@11.0592MHz
+   10          {
+   11   1          AUXR = 0x00;    //Timer0 set as 12T, 16 bits timer auto-reload, 
+   12   1          TH0 = (u8)(Timer0_Reload / 256);
+   13   1          TL0 = (u8)(Timer0_Reload % 256);
+   14   1          ET0 = 1;    //Timer0 interrupt enable
+   15   1          TR0 = 1;    //Tiner0 run
+   16   1          
+   17   1          // 中断优先级3
+   18   1          PT0  = 1;
+   19   1          PT0H = 1;
+   20   1      
+   21   1      
+   22   1      }
+   23          
+   24          // 10ms 中断一下
+   25          void Timer0ISR (void) interrupt 1
+   26          {
+   27   1          Timer0Cnt ++;
+   28   1      }
+   29          
+   30          
+   31          void Timer1_Init(void)        //10毫秒@11.0592MHz
+   32          {
+   33   1          AUXR &= 0xBF;            //定时器时钟12T模式
+   34   1          TMOD &= 0x0F;            //设置定时器模式
+   35   1          TL1 = 0x00;                //设置定时初始值
+   36   1          TH1 = 0xDC;                //设置定时初始值
+   37   1          //TF1 = 0;                //清除TF1标志
+   38   1          TR1 = 1;                //定时器1开始计时
+   39   1          PT0  = 1;               //中断优先级
+   40   1          PT0H = 0;
+   41   1      }
+   42          
+   43          
+   44          // 10ms 中断一下
+   45          void Timer1ISR (void) interrupt 3
+   46          {
+   47   1          Timer1Cnt ++;
+   48   1      }
+   49          
+   50          void delay_us(BYTE us)
+   51          {
+   52   1          while(us--)
+   53   1          {
+   54   2              ;
+   55   2          }
+   56   1      }
+   57          
+   58          void delay_ms(unsigned int ms)
+C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 2   
+
+   59          {
+   60   1          unsigned int i;
+   61   1          do{
+   62   2              i = MAIN_Fosc / 6030;
+   63   2              while(--i);
+   64   2          }while(--ms);
+   65   1      }
+   66          
+   67          void Delay(WORD ms)
+   68          {
+   69   1          WORD t = 1000;
+   70   1          while(ms--)
+   71   1          {
+   72   2              for (t=0;t<1000;t++) ;
+   73   2          }
+   74   1      }
+   75          
+   76          void TimerTask()
+   77          {
+   78   1          u16 delta = 0;
+   79   1          static u16 Time1s = 0;
+   80   1          BYTE i;
+   81   1          if (Timer0Cnt)
+   82   1          {
+   83   2              delta = Timer0Cnt * 10;
+   84   2              Timer0Cnt = 0;
+   85   2      
+   86   2              if (RX1_Cnt > 0)
+   87   2              {
+   88   3                  Rx1_Timer += delta;
+   89   3              }
+   90   2              if (RX2_Cnt > 0)
+   91   2              {
+   92   3                  Rx2_Timer += delta;
+   93   3              }
+   94   2      
+   95   2              gIdleTime += delta;
+   96   2              
+   97   2              if (gRunTime < 5000)
+   98   2              {
+   99   3                  gRunTime += delta;
+  100   3              }
+  101   2              
+  102   2              for (i=0;i<2;i++)
+  103   2              {
+  104   3                  if (g_UartData[i].RecvLength > 0)
+  105   3                  {
+  106   4                      g_UartData[i].Timer += delta;
+  107   4                  }
+  108   3              }
+  109   2              
+  110   2              Time1s += delta;
+  111   2              if (Time1s >= 1000)
+  112   2              {
+  113   3                  CLR_WDT = 1;  // 喂狗
+  114   3                  Time1s = 0;
+  115   3                  Task_1s();
+  116   3              }
+  117   2              g_CommIdleTime += delta;
+  118   2      
+  119   2              RunLed(delta);
+  120   2              IoCtlTask();
+  121   2          }
+  122   1      }
+  123          
+  124          
+C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 3   
+
+  125          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       343     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =         8     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =        24     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

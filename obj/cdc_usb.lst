@@ -1,0 +1,26 @@
+C251 COMPILER V5.60.0,  cdc_usb                                                            14/04/23  14:11:50  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE cdc_usb
+OBJECT MODULE PLACED IN .\obj\cdc_usb.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Hardware\CDC\cdc_usb.c XSMALL INTR2 BROWSE INCDIR(.\Hardware\Usart;.\U
+                    -SER;.\Hardware\LED;.\Hardware\TIM;.\Hardware\Eeprom;.\Hardware\CDC) DEBUG PRINT(.\obj\cdc_usb.lst) OBJECT(.\obj\cdc_usb.
+                    -obj) 
+
+stmt  level    source
+
+    1          #include "cdc_usb.h"
+*** ERROR C25 IN LINE 41 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near '*'
+*** ERROR C25 IN LINE 46 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near '*'
+*** ERROR C25 IN LINE 48 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near '*'
+*** ERROR C25 IN LINE 49 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near '*'
+*** ERROR C25 IN LINE 60 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'line'
+*** ERROR C25 IN LINE 63 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'line'
+*** ERROR C25 IN LINE 65 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'x'
+*** ERROR C25 IN LINE 66 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'x'
+*** ERROR C25 IN LINE 75 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'bContrast'
+*** ERROR C25 IN LINE 76 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'bMode'
+*** ERROR C25 IN LINE 77 OF Hardware\CDC\stc32_stc8_usb.h: syntax error near 'bPageStart'
+*** ERROR C7 IN LINE 77 OF Hardware\CDC\stc32_stc8_usb.h: compilation aborted
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  12 ERROR(S)
