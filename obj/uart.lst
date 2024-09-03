@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  uart                                                               26/06/24  16:41:43  PAGE 1   
+C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE uart
@@ -9,39 +9,39 @@ COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Hardware\Usart\uart.c XSMALL I
 
 stmt  level    source
 
-    1          #include "main.h"
-    2          #include "uart.h"
-    3          #include "cmd.h"
-    4          
-    5          u16 Rx1_Timer  = 0;
-    6          u16 Rx2_Timer  = 0;
-    7          u16 Rx3_Timer  = 0;
-    8          u16 Rx4_Timer  = 0;
+    1          #include "uart.h"
+    2          #include "cmd.h"
+    3          
+    4          u16 Rx1_Timer  = 0;
+    5          u16 Rx2_Timer  = 0;
+    6          u16 Rx3_Timer  = 0;
+    7          u16 Rx4_Timer  = 0;
+    8          
     9          
-   10          
-   11          u8  TX1_Cnt;    //发送计数
-   12          u8  RX1_Cnt;    //接收计数
-   13          bit B_TX1_Busy; //发送忙标志
-   14          
-   15          u8  TX2_Cnt;    //发送计数
-   16          u8  RX2_Cnt;    //接收计数
-   17          bit B_TX2_Busy; //发送忙标志
-   18          
-   19          u8  TX3_Cnt;
-   20          u8  RX3_Cnt;
-   21          bit B_TX3_Busy;
-   22          
-   23          u8  TX4_Cnt;
-   24          u8  RX4_Cnt;
-   25          bit B_TX4_Busy;
+   10          u8  TX1_Cnt;    //发送计数
+   11          u8  RX1_Cnt;    //接收计数
+   12          bit B_TX1_Busy; //发送忙标志
+   13          
+   14          u8  TX2_Cnt;    //发送计数
+   15          u8  RX2_Cnt;    //接收计数
+   16          bit B_TX2_Busy; //发送忙标志
+   17          
+   18          u8  TX3_Cnt;
+   19          u8  RX3_Cnt;
+   20          bit B_TX3_Busy;
+   21          
+   22          u8  TX4_Cnt;
+   23          u8  RX4_Cnt;
+   24          bit B_TX4_Busy;
+   25          
    26          
-   27          
-   28          u8  RX1_Buffer[MAX_LENGTH]; //接收缓冲
-   29          u8  RX2_Buffer[MAX_LENGTH]; //接收缓冲
-   30          u8  RX3_Buffer[MAX_LENGTH]; //接收缓冲
-   31          u8  RX4_Buffer[MAX_LENGTH]; //接收缓冲
-   32          
-   33          UART_DATA xdata g_UartData[2];
+   27          u8  RX1_Buffer[MAX_LENGTH]; //接收缓冲
+   28          u8  RX2_Buffer[MAX_LENGTH]; //接收缓冲
+   29          u8  RX3_Buffer[MAX_LENGTH]; //接收缓冲
+   30          u8  RX4_Buffer[MAX_LENGTH]; //接收缓冲
+   31          
+   32          UART_DATA xdata g_UartData[2];
+   33          extern BYTE g_CrcFlag;
    34          
    35          
    36          void Uart1_Init(void)        //115200bps@11.0592MHz
@@ -65,8 +65,8 @@ stmt  level    source
    54   1          SCON = (SCON & 0x3f) | 0x40; 
    55   1      
    56   1          PS  = 0;    //中断高优先级
-   57   1          PSH = 0;
-C251 COMPILER V5.60.0,  uart                                                               26/06/24  16:41:43  PAGE 2   
+   57   1          PSH = 1;
+C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 2   
 
    58   1          //PS  = 1;    //高优先级中断
    59   1          ES  = 1;    //允许中断
@@ -124,17 +124,17 @@ stmt  level    source
   111   1          if(RI)
   112   1          {
   113   2              RI = 0;
-  114   2              g_UartData[0].RecvBuff[g_UartData[0].RecvLength] = SBUF;
-  115   2              g_UartData[0].Timer = 0;
+  114   2              g_UartData[0].RecvBuff[g_UartData[0].RecvLength++] = SBUF;
+  115   2              //g_UartData[0].Timer = 0;
   116   2              
-  117   2              if(++g_UartData[0].RecvLength >= MAX_LENGTH)   
+  117   2              if(g_UartData[0].RecvLength >= MAX_LENGTH)   
   118   2              {
-  119   3                  g_UartData[0].RecvLength  = 0;
+  119   3                 Clear_Uart1_Buf();
   120   3              }
   121   2          }
   122   1      
   123   1          if(TI)
-C251 COMPILER V5.60.0,  uart                                                               26/06/24  16:41:43  PAGE 3   
+C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 3   
 
   124   1          {
   125   2              TI = 0;
@@ -149,12 +149,12 @@ stmt  level    source
   134   1          if(S2RI)
   135   1          {
   136   2              S2RI = 0;
-  137   2              g_UartData[1].RecvBuff[g_UartData[1].RecvLength] = S2BUF;
-  138   2              g_UartData[1].Timer = 0;
+  137   2              g_UartData[1].RecvBuff[g_UartData[1].RecvLength++] = S2BUF;
+  138   2              //g_UartData[1].Timer = 0;
   139   2              
-  140   2              if(++g_UartData[1].RecvLength >= MAX_LENGTH)   
+  140   2              if(g_UartData[1].RecvLength >= MAX_LENGTH)   
   141   2              {
-  142   3                  g_UartData[1].RecvLength  = 0;
+  142   3                 Clear_Uart2_Buf();
   143   3              }
   144   2          }
   145   1      
@@ -202,7 +202,7 @@ stmt  level    source
   187   1          u8 i;
   188   1          for (i=0;i<len;i++)     
   189   1          {
-C251 COMPILER V5.60.0,  uart                                                               26/06/24  16:41:43  PAGE 4   
+C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 4   
 
   190   2              S2BUF = buf[i];
   191   2              B_TX2_Busy = 1;
@@ -242,46 +242,42 @@ stmt  level    source
   225          
   226          void Uart1Hnd()
   227          {
-  228   1          if (g_UartData[0].Timer > 20)
+  228   1          if (g_UartData[0].Timer > UART_DATA_TIMEOUT)
   229   1          {
-  230   2              //Rx1_Timer = 0;
-  231   2              //g_UartData[0].RecvLength = RX1_Cnt;
-  232   2              g_UartData[0].Timer = 0;
-  233   2              //memcpy(&g_UartData[0].RecvBuff,RX1_Buffer,RX1_Cnt);
-  234   2              HndPcFrame();
-  235   2              //ClearUart1Buf();
-  236   2          }
-  237   1      }
-  238          
-  239          
-  240          void Uart2Hnd()
-  241          {
-  242   1          u16 i = 0;
-  243   1          if (g_UartData[1].Timer > 60)
-  244   1          {
-  245   2              g_UartData[1].Timer = 0;
-  246   2      
-  247   2              //DumpCmd(RX2_Buffer, RX2_Cnt);
-  248   2              //printf("进入Uart2\r\n");
-  249   2              //g_UartData[1].RecvLength = RX2_Cnt;
-  250   2              
-  251   2              //printf("g_UartData[1].LEN = %d\r\n",g_UartData[1].RecvLength);
-  252   2              //PrintData(g_UartData[1].RecvBuff,(u8)g_UartData[1].RecvLength);
-  253   2              //memcpy(g_UartData[1].RecvBuff,RX2_Buffer,RX2_Cnt);
-  254   2              //HndPcFrame();
-  255   2              //ClearUart2Buf();
-C251 COMPILER V5.60.0,  uart                                                               26/06/24  16:41:43  PAGE 5   
+  230   2              HndPcFrame();
+  231   2              //ClearUart1Buf();
+  232   2          }
+  233   1      }
+  234          
+  235          
+  236          bool Uart2Hnd()
+  237          {
+  238   1          bool ret = false;
+  239   1          if (g_UartData[1].Timer > UART_DATA_TIMEOUT)
+  240   1          {
+  241   2              g_UartData[1].Timer = 0;
+  242   2              if (ValidFrame(&g_UartData[1]))
+  243   2              {
+  244   3                  g_CrcFlag = 1;
+  245   3                 ret = true;
+  246   3              }
+  247   2              else
+  248   2              {
+  249   3                 g_CrcFlag = 0;
+  250   3                 ret = false; 
+  251   3              }
+  252   2          }
+  253   1          return ret;
+  254   1      }
+  255          
+C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 5   
 
-  256   2      
-  257   2          }
-  258   1      }
-  259          
-  260          
+  256          
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =       611     ------
+  code size            =       637     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------

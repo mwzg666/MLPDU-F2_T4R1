@@ -7,7 +7,7 @@
 #include "mcp4725.h"
 #include "MwPro.h"
 
-const BYTE VERSION[8] = "V1.0.0";
+const BYTE VERSION[8] = "V1.0.1";
 BYTE xdata StrTmp[64] = {0};
 
 alt_u32 gIdleTime;
@@ -351,7 +351,7 @@ void HndInput()
     alt_u8 key = GetKey();
     if (key == KEY_ALM_CFM)
     {
-        DebugMsg("KEY_ALM_CFM \r\n");
+        //DebugMsg("KEY_ALM_CFM \r\n");
         //WaitCommIdle();
         //SendPcCmd(0, CMD_CERTAINKEY, NULL, 0);
         g_Key_Confrom = 1;
@@ -362,9 +362,9 @@ void HndInput()
     if (Input_Status != 0xFF)
     {
         s = (Input_Status ^ StHis);
-        if (s && 1)   // 开关机
+        if (s & 1)   // 开关机
         {
-            if (Input_Status && 1)
+            if (Input_Status & 1)
             {
                 PwrHis = POWER_OFF;
                 //WaitCommIdle();
@@ -379,14 +379,14 @@ void HndInput()
             }
         }
 
-//        if (s && 4) // 输入1
+//        if (s & 4) // 输入1
 //        {
 //            //WaitCommIdle();
 //            //SendPcCmd(0, CMD_INPUT, &st, 1);
 //            g_Key_Input = 1;
 //        }
 //
-//        if (s && 2) // 输入2
+//        if (s & 2) // 输入2
 //        {
 //            //WaitCommIdle();
 //            //SendPcCmd(0, CMD_INPUT, &st, 1);
@@ -547,7 +547,6 @@ void main(void)
         HndInput();
         ReportInput();
         Uart1Hnd();
-      
     }
 }
 

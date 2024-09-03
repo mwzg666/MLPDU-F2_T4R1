@@ -48,8 +48,8 @@ typedef     unsigned int    uint;
 #define LED_GREEN        0
 #define LED_YELLOW       1
 #define LED_RED          2
-#define LIGHT_YELLOW     3
-#define LIGHT_RED        4
+#define LIGHT_RED        3
+#define LIGHT_YELLOW     4
 #define ALARM_SOUND      5
 #endif
 

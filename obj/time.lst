@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 1   
+C251 COMPILER V5.60.0,  time                                                               29/08/24  10:02:10  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE time
@@ -25,8 +25,8 @@ stmt  level    source
    15   1          TR0 = 1;    //Tiner0 run
    16   1          
    17   1          // 中断优先级3
-   18   1          PT0  = 1;
-   19   1          PT0H = 1;
+   18   1          PT0  = 0;
+   19   1          PT0H = 0;
    20   1      
    21   1      
    22   1      }
@@ -66,7 +66,7 @@ stmt  level    source
    56   1      }
    57          
    58          void delay_ms(unsigned int ms)
-C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 2   
+C251 COMPILER V5.60.0,  time                                                               29/08/24  10:02:10  PAGE 2   
 
    59          {
    60   1          unsigned int i;
@@ -134,7 +134,7 @@ stmt  level    source
   122   1      }
   123          
   124          
-C251 COMPILER V5.60.0,  time                                                               26/06/24  16:41:43  PAGE 3   
+C251 COMPILER V5.60.0,  time                                                               29/08/24  10:02:10  PAGE 3   
 
   125          
 

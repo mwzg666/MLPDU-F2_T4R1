@@ -15,8 +15,8 @@ void Timer0_Init(void)        //10毫秒@11.0592MHz
     TR0 = 1;    //Tiner0 run
     
     // 中断优先级3
-    PT0  = 1;
-    PT0H = 1;
+    PT0  = 0;
+    PT0H = 0;
 
 
 }

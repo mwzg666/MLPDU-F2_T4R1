@@ -1,4 +1,3 @@
-#include "main.h"
 #include "uart.h"
 #include "cmd.h"
 
@@ -31,6 +30,7 @@ u8  RX3_Buffer[MAX_LENGTH]; //接收缓冲
 u8  RX4_Buffer[MAX_LENGTH]; //接收缓冲
 
 UART_DATA xdata g_UartData[2];
+extern BYTE g_CrcFlag;
 
 
 void Uart1_Init(void)        //115200bps@11.0592MHz
@@ -54,7 +54,7 @@ void Uart1_Init(void)        //115200bps@11.0592MHz
     SCON = (SCON & 0x3f) | 0x40; 
 
     PS  = 0;    //中断高优先级
-    PSH = 0;
+    PSH = 1;
     //PS  = 1;    //高优先级中断
     ES  = 1;    //允许中断
     REN = 1;    //允许接收
@@ -111,12 +111,12 @@ void UART1_ISR (void) interrupt 4
     if(RI)
     {
         RI = 0;
-        g_UartData[0].RecvBuff[g_UartData[0].RecvLength] = SBUF;
-        g_UartData[0].Timer = 0;
+        g_UartData[0].RecvBuff[g_UartData[0].RecvLength++] = SBUF;
+        //g_UartData[0].Timer = 0;
         
-        if(++g_UartData[0].RecvLength >= MAX_LENGTH)   
+        if(g_UartData[0].RecvLength >= MAX_LENGTH)   
         {
-            g_UartData[0].RecvLength  = 0;
+           Clear_Uart1_Buf();
         }
     }
 
@@ -134,12 +134,12 @@ void UART2_ISR (void) interrupt 8
     if(S2RI)
     {
         S2RI = 0;
-        g_UartData[1].RecvBuff[g_UartData[1].RecvLength] = S2BUF;
-        g_UartData[1].Timer = 0;
+        g_UartData[1].RecvBuff[g_UartData[1].RecvLength++] = S2BUF;
+        //g_UartData[1].Timer = 0;
         
-        if(++g_UartData[1].RecvLength >= MAX_LENGTH)   
+        if(g_UartData[1].RecvLength >= MAX_LENGTH)   
         {
-            g_UartData[1].RecvLength  = 0;
+           Clear_Uart2_Buf();
         }
     }
 
@@ -225,36 +225,32 @@ void Clear_Uart2_Buf()
 
 void Uart1Hnd()
 {
-    if (g_UartData[0].Timer > 20)
+    if (g_UartData[0].Timer > UART_DATA_TIMEOUT)
     {
-        //Rx1_Timer = 0;
-        //g_UartData[0].RecvLength = RX1_Cnt;
-        g_UartData[0].Timer = 0;
-        //memcpy(&g_UartData[0].RecvBuff,RX1_Buffer,RX1_Cnt);
         HndPcFrame();
         //ClearUart1Buf();
     }
 }
 
 
-void Uart2Hnd()
+bool Uart2Hnd()
 {
-    u16 i = 0;
-    if (g_UartData[1].Timer > 60)
+    bool ret = false;
+    if (g_UartData[1].Timer > UART_DATA_TIMEOUT)
     {
         g_UartData[1].Timer = 0;
-
-        //DumpCmd(RX2_Buffer, RX2_Cnt);
-        //printf("进入Uart2\r\n");
-        //g_UartData[1].RecvLength = RX2_Cnt;
-        
-        //printf("g_UartData[1].LEN = %d\r\n",g_UartData[1].RecvLength);
-        //PrintData(g_UartData[1].RecvBuff,(u8)g_UartData[1].RecvLength);
-        //memcpy(g_UartData[1].RecvBuff,RX2_Buffer,RX2_Cnt);
-        //HndPcFrame();
-        //ClearUart2Buf();
-
+        if (ValidFrame(&g_UartData[1]))
+        {
+            g_CrcFlag = 1;
+           ret = true;
+        }
+        else
+        {
+           g_CrcFlag = 0;
+           ret = false; 
+        }
     }
+    return ret;
 }
 
 

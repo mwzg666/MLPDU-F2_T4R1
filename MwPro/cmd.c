@@ -110,6 +110,8 @@ bool ValidFrame(UART_DATA *pUartData)
     WORD res = 0;
     FRAME_HEAD FrmHead;
     memcpy(&FrmHead, pUartData->RecvBuff, sizeof(FRAME_HEAD));
+    
+    //printf("FrmHead.Len = %d\r\n",FrmHead.Len);
 
     if (FrmHead.Head != HEAD)
     {
@@ -131,40 +133,14 @@ bool ValidFrame(UART_DATA *pUartData)
     }
 
     lcrc = CheckSum(pUartData->RecvBuff,pUartData->RecvLength);
-    //printf("lcrc = %02X\r\n",lcrc);
     
     sprintf((char *)tmp, "%02X",lcrc);
-    //printf("tem = %s\r\n",tmp);
 
     if ( (memcmp(tmp, &pUartData->RecvBuff[pUartData->RecvLength-3], 2) != 0) )
     {
         return false;
     }
     
-    #if 0
-    //    if(g_CrcFlag)
-    //    {
-    //        sprintf((char *)tmp, "%02X",lcrc);
-    //        printf("tem = %s\r\n",tmp);
-    //        //if ( (memcmp(tmp,tmp2,2) != 0) )
-    //        if ( (memcmp(tmp, &pUartData->RecvBuff[pUartData->RecvLength-3], 2) != 0) )
-    //        {
-    //            printf("CRC_error1!\r\n");
-    //            return false;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        memcpy(&res,&pUartData->RecvBuff[pUartData->RecvLength-3],2);
-    //        if ((WORD)lcrc != res)
-    //        {
-    //            
-    //            printf("CRC2_error!\r\n");
-    //            return FALSE;
-    //        }
-    //    }
-    #endif
-
     return true;
 }
 
@@ -200,7 +176,7 @@ void MakeFrame(UART_DATA *pUartData, alt_u8 Addr, alt_u8 Cmd, alt_u8 *dat, alt_u
 
 void SendPcCmd(alt_u8 Addr, alt_u8 Cmd, alt_u8 *dat, alt_u8 length)
 {
-    g_CrcFlag = 0;
+    //g_CrcFlag = 0;
     MakeFrame(&g_UartData[0], Addr, Cmd, dat, length);
     //DebugMsg("PC<:");
     //PrintData(g_UartData[0].SendBuff,g_UartData[0].SendLength);
@@ -213,7 +189,6 @@ bool SendSensorCmd(alt_u8 Addr, alt_u8 Cmd, alt_u8 *Data, alt_u8 length)
 {
 
     MakeFrame(&g_UartData[1],Addr, Cmd, Data, length);
-    //PrintData(g_UartData[1].SendBuff ,(alt_u8)g_UartData[1].SendLength);
     Uart2Send(g_UartData[1].SendBuff,(u8)g_UartData[1].SendLength);    
     return WaitSensorAck(Addr, Cmd);
 }
@@ -221,26 +196,21 @@ bool SendSensorCmd(alt_u8 Addr, alt_u8 Cmd, alt_u8 *Data, alt_u8 length)
 // 等待探头的应答
 bool WaitSensorAck(alt_u8 Addr, alt_u8 Cmd)
 {
+    u8 i = 0;
     alt_u32 to = SENSOR_CMD_TIMEOUT/10;
     while(to--)
-    {
-        //printf("Uart2timer = %d\r\n",g_UartData[1].Timer);     
+    { 
         
-        if (g_UartData[1].Timer > 50)    //g_UartData[1].Timer//if (g_UartData[1].Timer > UART_DATA_TIMEOUT)
+        if (g_UartData[1].Timer > UART_DATA_TIMEOUT)
         {
-            g_CrcFlag = 1;
             //DebugMsg("Recv Sensor cmd: Addr:%d - Len:%d \r\n", Addr, g_UartData[Addr].RecvLength);
             //DebugMsg("<<");
-            PrintData(g_UartData[1].RecvBuff ,(alt_u8)g_UartData[1].RecvLength);
-             //g_UartData[1].Timer = 0;
+            //PrintData(g_UartData[1].RecvBuff ,(alt_u8)g_UartData[1].RecvLength);
              
-             //printf("Cmd = %x\r\n",Cmd);
-             //printf("[CMD] = %x\r\n",g_UartData[1].RecvBuff[CMD]);
             if (ValidFrame(&g_UartData[1]))
             {
                 if (Cmd == g_UartData[1].RecvBuff[CMD])
                 {
-//                    printf("成功\r\n");
                     return true; // 成功
                 }
             }
@@ -249,7 +219,7 @@ bool WaitSensorAck(alt_u8 Addr, alt_u8 Cmd)
         Idle(20); // 20ms
 
         //DebugMsg("Wait : %d \r\n ", to);
-    }
+   }
 
     //DebugMsg("Wait timeout, addr = %d \r\n ", Addr);
 
@@ -327,7 +297,7 @@ bool HndPcCmd()
         case CMD_GET_4_20MA:    ret = Read4_20ma();        break;
         case CMD_VERSION:       ret = DevVer(FrmHead.Addr);  break;
         case CMD_BATTERY:       ret = ReadBatVol();        break;
-        case CMD_CHANNEL_ALMLIGHT:  ret =  ChannelAlmLightClt(&g_UartData[0].RecvBuff[DAT]);break;
+        //case CMD_CHANNEL_ALMLIGHT:  ret =  ChannelAlmLightClt(&g_UartData[0].RecvBuff[DAT]);break;
         
         // Sensor cmd
         case CMD_DEV_CON:        ret = ConnectSensor(FrmHead.Addr);    break;
@@ -348,8 +318,9 @@ bool FrameRevert(FRAME_HEAD *fres)
     bool ret = false;
     if (SendSensorCmd(fres->Addr ,fres->Cmd , &g_UartData[0].RecvBuff[DAT], (alt_u8)(fres->Len-8)))
     {
-        SendPcCmd(fres->Addr, fres->Cmd, &g_UartData[1].RecvBuff[DAT], (alt_u8)(g_UartData[1].RecvBuff[LEN]-8 ));
         ret = true;
+        SendPcCmd(fres->Addr, fres->Cmd, &g_UartData[1].RecvBuff[DAT], (alt_u8)(g_UartData[1].RecvBuff[LEN]-8 ));
+    
     }
     ClearRecvData(&g_UartData[1]);
     return ret; 
@@ -360,8 +331,8 @@ bool ConnectSensor(alt_u8 Addr)
     bool ret = false;
     if (SendSensorCmd(Addr,CMD_DEV_CON , NULL, 0))
     {
-        SendPcCmd(Addr, CMD_DEV_CON, NULL, 0);
         ret = true;
+        SendPcCmd(Addr, CMD_DEV_CON, NULL, 0);
     }
     ClearRecvData(&g_UartData[1]);
     
@@ -384,9 +355,10 @@ bool ReadDoseRate(alt_u8 Addr)
         HostDose.ALARM_STATUS.ByteWhole  = SensorDose.State;
         #endif
         memcpy(&HostDose, &g_UartData[1].RecvBuff[DAT], sizeof(HOST_COUNT_PULSE));
-        SendPcCmd(Addr, CMD_READ_DOSE, (alt_u8 *)&HostDose, sizeof(HOST_COUNT_PULSE));
+
         ret = true;
-    }
+        SendPcCmd(Addr, CMD_READ_DOSE, (alt_u8 *)&HostDose, sizeof(HOST_COUNT_PULSE));
+        }
     ClearRecvData(&g_UartData[1]);
     return ret;    
 }
@@ -406,9 +378,11 @@ bool ReadAlarmParam(alt_u8 Addr)
         HostAlarm.DOSE_RATE_ALARM_2 = SensorAlarm.DoseRateAlarm;
         HostAlarm.CUM_DOSE_RATE_ALARM_1 = SensorAlarm.DosePreAlarm;
         HostAlarm.CUM_DOSE_RATE_ALARM_2 = SensorAlarm.DoseAlarm;
-        SendPcCmd(Addr, CMD_READ_ALARM_PARA, (alt_u8 *)&HostAlarm, sizeof(HOST_ALRAM_PARA));
+
         ret = true;
-    }
+        SendPcCmd(Addr, CMD_READ_ALARM_PARA, (alt_u8 *)&HostAlarm, sizeof(HOST_ALRAM_PARA));
+     }
+
     ClearRecvData(&g_UartData[1]);
     return ret;    
 }
@@ -431,8 +405,8 @@ bool WriteAlarmParam(alt_u8 Addr)
         
     if (SendSensorCmd(Addr,CMD_WRITE_ALARM_PARA_B , (alt_u8 *)&SensorAlarm, sizeof(SENSOR_ALARM)))
     {
-        SendPcCmd(Addr, CMD_WRITE_ALARM_PARA_B, NULL, 0);
-        ret = true;
+            SendPcCmd(Addr, CMD_WRITE_ALARM_PARA_B, NULL, 0);
+            ret = true;
     }
     ClearRecvData(&g_UartData[1]);
     
@@ -452,16 +426,26 @@ bool ReadSensorParam(alt_u8 Addr)
     {
         memset(&HostParam, 0, sizeof(HOST_SENSOR_PARAM));
         memcpy(&SensorParam, &g_UartData[1].RecvBuff[DAT], sizeof(SENSOR_PARAM));
+
         HostParam.LOW_REVISE_COE_A = SensorParam.Canshu1;
+        //HostParam.LOW_REVISE_COE_A = FloatToSmall(HostParam.LOW_REVISE_COE_A);
         HostParam.LOW_REVISE_COE_B = SensorParam.Canshu2;
+        //HostParam.LOW_REVISE_COE_B = FloatToSmall(HostParam.LOW_REVISE_COE_B);
         memcpy(temp, SensorParam.yuzhi1, 4);
         HostParam.DET_THR_1 = atoi(temp);
+        HostParam.DET_THR_1 = DwordToSmall(HostParam.DET_THR_1);
         memcpy(temp, SensorParam.yuzhi2, 4);
         HostParam.DET_THR_2 = atoi(temp);
+        HostParam.DET_THR_2 = DwordToSmall(HostParam.DET_THR_2);
         memcpy(temp, SensorParam.PingHuaShiJian, 4);
         HostParam.DET_TIME  = atoi(temp);
+        HostParam.DET_TIME = DwordToSmall(HostParam.DET_TIME);
+        //printf("THR_1 = %d\r\n", HostParam.DET_THR_1);
+        //printf("THR_2 = %d\r\n", HostParam.DET_THR_2);
+
         SendPcCmd(Addr, CMD_READ_DETER_PARA_R, (alt_u8 *)&HostParam, sizeof(HOST_SENSOR_PARAM));
         ret = true;
+
     }
     ClearRecvData(&g_UartData[1]);
     return ret;    
@@ -482,20 +466,24 @@ bool WriteSensorParam(alt_u8 Addr)
     
     SensorParam.Canshu1 = HostParam.LOW_REVISE_COE_A;
     SensorParam.Canshu2 = HostParam.LOW_REVISE_COE_B;
-    
+    HostParam.DET_THR_1 = DwordToSmall(HostParam.DET_THR_1);
     sprintf(temp, "%04u", (unsigned int)HostParam.DET_THR_1);
     memcpy(SensorParam.yuzhi1, temp, 4);
-
+    
+    HostParam.DET_THR_2 = DwordToSmall(HostParam.DET_THR_2);
     sprintf(temp, "%04u", (unsigned int)HostParam.DET_THR_2);
     memcpy(SensorParam.yuzhi2, temp, 4);
-
+    
+    HostParam.DET_TIME = DwordToSmall(HostParam.DET_TIME);
     sprintf(temp, "%04u", (unsigned int)HostParam.DET_TIME);
     memcpy(SensorParam.PingHuaShiJian, temp, 4);
     
     if (SendSensorCmd(Addr,CMD_WRITE_DETER_PARA_W , (alt_u8 *)&SensorParam, sizeof(SENSOR_PARAM)))
     {
+
         SendPcCmd(Addr, CMD_WRITE_DETER_PARA_W, NULL, 0);
         ret = true;
+
     }
     ClearRecvData(&g_UartData[1]);
     return ret;   
@@ -550,37 +538,45 @@ bool ChannelAlmLightClt(alt_u8 *Light)
     memcpy(g_OutChannelLight, Light, OUT_Channel_COUNT); 
     if(g_OutChannelLight[LIGHT_OUT1])
     {
-        ALMOUT_1(1);
+        ALMOUT_1(1);
+
     }
     else
     {
-        ALMOUT_1(0);
+        ALMOUT_1(0);
+
     }
 
     if(g_OutChannelLight[LIGHT_OUT2])
     {
-        ALMOUT_2(1);
+        ALMOUT_2(1);
+
     }
     else
     {
-        ALMOUT_2(0);
+        ALMOUT_2(0);
+
     }
 
     if(g_OutChannelLight[LIGHT_OUT3])
     {
-        ALMOUT_3(1);
+        ALMOUT_3(1);
+
     }
     else
     {
-        ALMOUT_3(0);
+        ALMOUT_3(0);
+
     }
     if(g_OutChannelLight[LIGHT_OUT4])
     {
-        ALMOUT_4(1);
+        ALMOUT_4(1);
+
     }
     else
     {
-        ALMOUT_4(0);
+        ALMOUT_4(0);
+
     }
     
     SendPcCmd(0, CMD_CHANNEL_ALMLIGHT, NULL, 0);
@@ -612,6 +608,7 @@ bool DevVer(alt_u8 Addr)
     {
         if (SendSensorCmd(Addr,CMD_VERSION , NULL, 0))
         {
+
             memcpy(buf, &g_UartData[1].RecvBuff[DAT], 6);
             ClearRecvData(&g_UartData[1]);
         }
@@ -620,6 +617,7 @@ bool DevVer(alt_u8 Addr)
             return false;
         }
     }
+
     SendPcCmd(Addr, CMD_VERSION, (alt_u8 *)buf, 6);
     return true;
 }

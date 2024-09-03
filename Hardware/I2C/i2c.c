@@ -1,7 +1,7 @@
 #include "main.h"
 #include "i2c.h"
 
-BYTE P2DIR = 0;
+//BYTE P2DIR = 0;
 
 
 #if 0

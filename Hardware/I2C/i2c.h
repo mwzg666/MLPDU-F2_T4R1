@@ -3,7 +3,7 @@
 
 #include "time.h"
 
-extern BYTE P2DIR;
+//extern BYTE P2DIR;
 
 #define I2C_SEN_THRES      1 
 #define I2C_4_20MA_IN    2 
@@ -14,7 +14,7 @@ extern BYTE P2DIR;
 #define I2C1_DIRM1   P3M1
 #define I2C1_DIRM0   P3M0
 
-#define I2C1_DIR   P2DIR
+#define I2C1_DIR   P3
 #define I2C1_OUT   P3
 #define I2C1_IN    P3
 #define I2C1_SDA   (1<<3) 

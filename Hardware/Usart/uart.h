@@ -73,7 +73,7 @@ void Clear_Uart2_Buf();
 
 
 void Uart1Hnd();
-void Uart2Hnd();
+bool Uart2Hnd();
 
 #endif
 
