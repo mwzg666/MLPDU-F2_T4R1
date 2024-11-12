@@ -7,7 +7,7 @@
 #include "mcp4725.h"
 #include "MwPro.h"
 
-const BYTE VERSION[8] = "V1.0.1";
+const BYTE VERSION[8] = "V1.0.2";
 BYTE xdata StrTmp[64] = {0};
 
 alt_u32 gIdleTime;
@@ -178,7 +178,7 @@ void OutCtl(alt_u8 id, alt_u8 st)
         case LED_YELLOW:    // 故障
         {
             (st)? YEL_LED(1):YEL_LED(0); 
-            //(st)? LEDF(1):LEDF(0); 
+            (st)? RELAY_2(1):RELAY_2(0); 
             //RELAY_2(st);
             break;
         }
@@ -296,7 +296,10 @@ void PowerOff()
     RED_LIGHT(0);
     YEL_LIGHT(0);
     ALARM(0);
-
+    RELAY_1(0);
+    RELAY_2(0);
+    RELAY_3(0);
+    RELAY_4(0);
     IPC_PWR_ON(0);
     PW_MAIN(0);    //关闭控制板电源
 
@@ -335,6 +338,11 @@ void LedInit()
     ALMOUT_2(0);
     ALMOUT_3(0);
     ALMOUT_4(0);
+
+    RELAY_1(0);
+    RELAY_2(0);
+    RELAY_3(0);
+    RELAY_4(0);
     
 }
 

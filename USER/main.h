@@ -87,8 +87,6 @@ typedef     unsigned int    uint;
 #define YEL_LIGHT(x) (x)?(P5 |= (1<<1)):(P5 &= ~(1<<1))      // »ÆµÆ
 //#define BLU_LIGHT(x) (x)?(P3 |= (1<<2)):(P3 &= ~(1<<2))      // À¶µÆ
 
-//#define LEDF(x)   (x)?(P2 |= (1<<4)):(P2 &= ~(1<<4))   //¹ÊÕÏ±¨¾¯µÆ
-//#define LEDM(x)   (x)?(P2 |= (1<<3)):(P2 &= ~(1<<3))    //Ô¶³Ì±¨¾¯µÆ
 #define ALARM(x)  (x)?(P4 |= (1<<2)):(P4 &= ~(1<<2))      // ±¨¾¯Òô
 
 #define PW_MAIN(x)      (x)?(P0 |= (1<<6)):(P0 &= ~(1<<6))         // Ö÷µçÔ´¿ØÖÆ

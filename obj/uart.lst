@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 1   
+C251 COMPILER V5.60.0,  uart                                                               11/11/24  09:33:05  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE uart
@@ -66,7 +66,7 @@ stmt  level    source
    55   1      
    56   1          PS  = 0;    //中断高优先级
    57   1          PSH = 1;
-C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 2   
+C251 COMPILER V5.60.0,  uart                                                               11/11/24  09:33:05  PAGE 2   
 
    58   1          //PS  = 1;    //高优先级中断
    59   1          ES  = 1;    //允许中断
@@ -134,7 +134,7 @@ stmt  level    source
   121   2          }
   122   1      
   123   1          if(TI)
-C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 3   
+C251 COMPILER V5.60.0,  uart                                                               11/11/24  09:33:05  PAGE 3   
 
   124   1          {
   125   2              TI = 0;
@@ -202,7 +202,7 @@ stmt  level    source
   187   1          u8 i;
   188   1          for (i=0;i<len;i++)     
   189   1          {
-C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 4   
+C251 COMPILER V5.60.0,  uart                                                               11/11/24  09:33:05  PAGE 4   
 
   190   2              S2BUF = buf[i];
   191   2              B_TX2_Busy = 1;
@@ -270,7 +270,7 @@ stmt  level    source
   253   1          return ret;
   254   1      }
   255          
-C251 COMPILER V5.60.0,  uart                                                               29/08/24  10:02:10  PAGE 5   
+C251 COMPILER V5.60.0,  uart                                                               11/11/24  09:33:05  PAGE 5   
 
   256          
 

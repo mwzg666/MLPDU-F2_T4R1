@@ -277,6 +277,7 @@ bool ReadBatVol()
     GetAds1110(I2C_BAT_VOL, ADS110_BAT_VOL);
 
     bi.Vol = (WORD)Voltage;
+    bi.Vol = WordToSmall(bi.Vol);
     bi.Charging = (BAT_CHARGE() != 0);
     SendPcCmd(0,CMD_BATTERY, (BYTE *)&bi, 3);
     return true;
@@ -493,12 +494,12 @@ bool SoundCtl(alt_u8 Ctl)
 {
     if (Ctl == 0xAA)
     {
-        //LEDM(1);      // 远程报警灯
+        RELAY_1(1);      // 远程报警灯
         g_Output[ALARM_SOUND] = 2;
     }
     else
     {
-        //LEDM(0);    
+        RELAY_1(0);    
         g_Output[ALARM_SOUND] = 0;
     }
     SendPcCmd(0, CMD_SOUND, NULL, 0);
@@ -584,17 +585,6 @@ bool ChannelAlmLightClt(alt_u8 *Light)
 
     
 }
-
-//bool DevVer(alt_u8 Addr)
-//{
-//    BYTE buf[7] = {0};
-//
-//    // 
-//    memcpy(buf, VERSION, 6);
-//    
-//    SendPcCmd(Addr, CMD_VERSION, buf, 6);
-//    return true;
-//}
 
 bool DevVer(alt_u8 Addr)
 {
