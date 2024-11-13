@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  MwPro                                                              11/11/24  09:33:05  PAGE 1   
+C251 COMPILER V5.60.0,  MwPro                                                              13/11/24  15:09:02  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE MwPro
@@ -66,7 +66,7 @@ stmt  level    source
                    FRAME_HEAD *head = (FRAME_HEAD*)SendBuf;
                    BYTE Sum;
                    BYTE CkLen = 0;
-C251 COMPILER V5.60.0,  MwPro                                                              11/11/24  09:33:05  PAGE 2   
+C251 COMPILER V5.60.0,  MwPro                                                              13/11/24  15:09:02  PAGE 2   
 
                    BYTE Str[3] = {0};
                    
@@ -134,7 +134,7 @@ stmt  level    source
                    if (cs != rs)
                    {
                        #ifdef FOR_DEBUG
-C251 COMPILER V5.60.0,  MwPro                                                              11/11/24  09:33:05  PAGE 3   
+C251 COMPILER V5.60.0,  MwPro                                                              13/11/24  15:09:02  PAGE 3   
 
                        // 把正确的校验码发回去，用于调试
                        memset(RX1_Buffer,0,UART_BUF_LENGTH);

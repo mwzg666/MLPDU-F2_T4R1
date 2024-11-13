@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 1   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE cmd
@@ -66,7 +66,7 @@ stmt  level    source
    56   1          return ret;
    57   1      }
    58          
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 2   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 2   
 
    59          BYTE ByteToSmall(BYTE dat)
    60          {
@@ -134,7 +134,7 @@ stmt  level    source
   122   1      
   123   1          if (pUartData->RecvBuff[pUartData->RecvLength-1] != TAIL)
   124   1          {
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 3   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 3   
 
   125   2              //printf("TAIL_error!\r\n");
   126   2              return false;
@@ -202,7 +202,7 @@ stmt  level    source
   188          bool SendSensorCmd(alt_u8 Addr, alt_u8 Cmd, alt_u8 *Data, alt_u8 length)
   189          {
   190   1      
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 4   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 4   
 
   191   1          MakeFrame(&g_UartData[1],Addr, Cmd, Data, length);
   192   1          Uart2Send(g_UartData[1].SendBuff,(u8)g_UartData[1].SendLength);    
@@ -270,7 +270,7 @@ stmt  level    source
   253   2              //case 2:  MCP4725_OutVol(MCP4725_HV_ADDR, v); break; 
   254   2          }
   255   1      
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 5   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 5   
 
   256   1          SendPcCmd(0, CMD_OUT_4_20MA, NULL, 0);
   257   1          return true;
@@ -338,7 +338,7 @@ stmt  level    source
   318          {
   319   1          bool ret = false;
   320   1          if (SendSensorCmd(fres->Addr ,fres->Cmd , &g_UartData[0].RecvBuff[DAT], (alt_u8)(fres->Len-8)))
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 6   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 6   
 
   321   1          {
   322   2              ret = true;
@@ -406,7 +406,7 @@ stmt  level    source
   383   2              ret = true;
   384   2              SendPcCmd(Addr, CMD_READ_ALARM_PARA, (alt_u8 *)&HostAlarm, sizeof(HOST_ALRAM_PARA));
   385   2           }
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 7   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 7   
 
   386   1      
   387   1          ClearRecvData(&g_UartData[1]);
@@ -474,7 +474,7 @@ stmt  level    source
   449   2      
   450   2          }
   451   1          ClearRecvData(&g_UartData[1]);
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 8   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 8   
 
   452   1          return ret;    
   453   1      }
@@ -542,7 +542,7 @@ stmt  level    source
   515   1          {
   516   2              RELAY_3(1); 
   517   2          }
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 9   
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 9   
 
   518   1          else
   519   1          {
@@ -610,7 +610,7 @@ stmt  level    source
   581   2          }
   582   1          
   583   1          SendPcCmd(0, CMD_CHANNEL_ALMLIGHT, NULL, 0);
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 10  
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 10  
 
   584   1          return true;
   585   1      
@@ -679,7 +679,7 @@ Module Information          Static   Overlayable
   pdata size           =    ------     ------
   xdata size           =    ------     ------
   xdata-const size     =    ------     ------
-C251 COMPILER V5.60.0,  cmd                                                                11/11/24  09:33:05  PAGE 11  
+C251 COMPILER V5.60.0,  cmd                                                                13/11/24  15:09:02  PAGE 11  
 
   edata size           =         3        357
   bit size             =    ------     ------

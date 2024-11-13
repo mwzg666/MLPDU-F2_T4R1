@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 1   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE main
@@ -66,7 +66,7 @@ stmt  level    source
    56   3                  break;
    57   3              }
    58   2              sprintf(&StrTmp[i*3], "%02X ", dat[i]);
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 2   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 2   
 
    59   2          }
    60   1          sprintf(&StrTmp[i*3], "\r\n");
@@ -134,7 +134,7 @@ stmt  level    source
   121   1          P3M1 = 0x00;   P3M0 |= (1<<5);                      //设置为准双向口
   122   1          P4M1 = 0x02;   P4M0 = 0x1C;                        //设置为准双向口  
   123   1          P5M1 = 0x05;   P5M0 |= (1<<1);                      //设置为准双向口
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 3   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 3   
 
   124   1      }
   125          
@@ -202,7 +202,7 @@ stmt  level    source
   187   2          }
   188   1      
   189   1          
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 4   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 4   
 
   190   1      }
   191          
@@ -270,7 +270,7 @@ stmt  level    source
                        else
                        {
                            OutChannelLightCtl(id, 1);
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 5   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 5   
 
                        }
                    }
@@ -338,7 +338,7 @@ stmt  level    source
   319   1      }
   320          
   321          void LedInit()
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 6   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 6   
 
   322          {
   323   1          // 初始状态都为0
@@ -406,7 +406,7 @@ stmt  level    source
   385   4                      PwrHis = POWER_ON;
   386   4                      gRunTime = 0;
   387   4                  }
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 7   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 7   
 
   388   3              }
   389   2      
@@ -474,7 +474,7 @@ stmt  level    source
   451   1          static BYTE his = 0x01;
   452   1          BYTE st = POWER_LOCK(),st2 = 0;
   453   1          //st |= INPUT1_M();
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 8   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 8   
 
   454   1          //st |= INPUT2_M();
   455   1      
@@ -542,7 +542,7 @@ stmt  level    source
   517          
   518          
   519          void main(void)
-C251 COMPILER V5.60.0,  main                                                               11/11/24  09:33:05  PAGE 9   
+C251 COMPILER V5.60.0,  main                                                               13/11/24  15:09:01  PAGE 9   
 
   520          {
   521   1          SysInit();
